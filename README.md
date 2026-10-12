@@ -1,23 +1,23 @@
-# PricklyStatus Page
+# ⚡ PricklyStatus Page
 
-A high-performance, professional, cyber-themed Node & Server status dashboard featuring sleek glassmorphism, dynamic motion backgrounds, live active server metrics, and interactive node expansion.
+> **Next-Gen, High-Performance Infrastructure & Node Status Dashboard**  
+> Experience ultra-sleek cyberpunk glassmorphism, dynamic motion visualizers, live server analytics, and interactive node expansion in one lightweight package.
 
-## Features
-- **Cyberpunk UI/UX**: Neon glassmorphic design with dynamic motion backgrounds (Minecraft fishing theme).
-- **Node & Server Metrics**: Real-time tracking of active servers per node instead of cluttered hardware metrics.
-- **Interactive Server List**: Clickable node cards with smooth accordion expansion showing individual server name, port, FQDN, and live status (Online/Offline).
-- **Secure Authentication**: Protected admin dashboard with browser autofill prevention.
-- **Automated Deployment**: Quick one-liner installation script with automated dependency management and SuperAdmin onboarding.
+---
 
-## Installation
+## 🔥 Key Highlights
 
-Deploy your status page instantly using the one-liner installation script:
+- **⚡ Cyberpunk Glass UI**: Next-level dark aesthetics powered by dynamic motion backgrounds (defaulting to clean Minecraft motion graphics).
+- **🖥️ Nodes & Servers Tracking**: Real-time live status monitoring for Nodes & Servers without heavy, unnecessary hardware bloat.
+- **📂 Interactive Node Expansion**: Clickable Node cards featuring smooth accordion expansion to view detailed server lists, live ports, FQDNs, and real-time status badges.
+- **🔒 Production-Grade Auth**: Built-in Admin dashboard with aggressive browser autofill protection and secure access control.
+- **🚀 One-Touch Deployment**: Automated background dependency installer with instant SuperAdmin onboarding.
 
-bash <(curl -s https://statuspage.pricklystudios.dpdns.org/install.sh)
+---
 
-## Tech Stack
-- **Backend**: Node.js, Express, Pterodactyl API Integration
-- **Frontend**: HTML5, Tailwind CSS, JavaScript (Vanilla with Cyber-Glass UI)
+## ⚡ Instant One-Line Installation
 
-## Footer Branding
-Powered By PricklyStudios © 2026-27.
+Run this single command in your terminal to deploy PricklyStatus instantly:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/pricklyspider211/PCStatusPage/main/install.sh)
