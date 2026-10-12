@@ -1,6 +1,6 @@
 # 🌩️ PricklyStatus Page
 
-A high-performance, professional, cyber-themed Pterodactyl status dashboard featuring sleek glassmorphism, dynamic motion backgrounds, live active server metrics, and interactive node expansion.
+A high-performance, professional, cyber-themed Node & Server status dashboard featuring sleek glassmorphism, dynamic motion backgrounds, live active server metrics, and interactive node expansion.
 
 ## ✨ Features
 - **Cyberpunk UI/UX**: Neon glassmorphic design with dynamic motion backgrounds (Minecraft fishing theme).
