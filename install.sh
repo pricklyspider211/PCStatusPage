@@ -1,11 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Ensure script is run as root
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run this script as root (use sudo)."
+  exit 1
+fi
+
 REPO_URL="https://github.com/pricklyspider211/PCStatusPage.git"
 APP_DIR="${APP_DIR:-/var/www/pcstatuspage}"
 PORT="${PORT:-3000}"
 LOG_DIR="$APP_DIR/.logs"
 
+# 1. Check and Install Node.js & npm if missing
+if ! command -v node &> /dev/null || ! command -v npm &> /dev/null; then
+  echo "Node.js or npm is missing. Installing Node.js 20.x..."
+  apt-get update -y
+  apt-get install -y curl git build-essential
+  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  apt-get install -y nodejs
+fi
+
+# 2. Handle Git Clone / Update
 if [ -d "$APP_DIR/.git" ]; then
   echo "Updating existing installation..."
   git -C "$APP_DIR" pull --ff-only >/dev/null 2>&1 || true
@@ -18,8 +34,9 @@ fi
 mkdir -p "$APP_DIR" "$LOG_DIR"
 rm -f "$APP_DIR/install.log" "$APP_DIR/server.log" "$APP_DIR/.npm-install.pid"
 
+# 3. Install Project Dependencies
 if [ ! -d "$APP_DIR/node_modules" ]; then
-  echo "Installing dependencies..."
+  echo "Installing project dependencies..."
   (
     cd "$APP_DIR"
     nohup npm install > "$LOG_DIR/install.log" 2>&1 &
@@ -37,6 +54,7 @@ if [ ! -d "$APP_DIR/node_modules" ]; then
   echo "Dependencies installed."
 fi
 
+# 4. Start Server
 if ! pgrep -f "node server.js" >/dev/null 2>&1; then
   echo "Starting server in the background..."
   (
@@ -45,6 +63,7 @@ if ! pgrep -f "node server.js" >/dev/null 2>&1; then
   )
 fi
 
+# 5. Health Check & SuperAdmin Setup
 for _ in $(seq 1 30); do
   if curl -fsS "http://localhost:$PORT" >/dev/null 2>&1; then
     echo "Successfully Started The PCStatusPage."
