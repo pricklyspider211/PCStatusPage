@@ -20,4 +20,4 @@
 Run this single command in your terminal to deploy PricklyStatus instantly:
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/pricklyspider211/PCStatusPage/main/install.sh)
+bash <(curl -s https://statuspage.pricklystudios.dpdns.org/install.sh)
