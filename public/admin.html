@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" id="dynamic-favicon" type="image/png" href="" />
+    <title>PricklyStatus Page Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background: linear-gradient(135deg, #020817 0%, #0f172a 100%);
+      }
+
+      .glass-panel {
+        background: rgba(15, 23, 42, 0.68);
+        border: 1px solid rgba(34, 211, 238, 0.22);
+        box-shadow: 0 0 22px rgba(34, 211, 238, 0.1), inset 0 1px 0 rgba(148, 163, 184, 0.06);
+        backdrop-filter: blur(1px);
+        -webkit-backdrop-filter: blur(1px);
+      }
+
+      .cyber-button {
+        border: 1px solid rgba(34, 211, 238, 0.4);
+        background: rgba(8, 47, 73, 0.38);
+        box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
+        text-shadow: 0 0 12px rgba(34, 211, 238, 0.8);
+      }
+
+      .cyber-header {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      .cyber-footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 40;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      .cyber-footer a {
+        color: #dbeafe;
+        font-weight: 600;
+        text-shadow: 0 0 12px rgba(34, 211, 238, 0.55), 0 0 24px rgba(34, 211, 238, 0.2);
+      }
+
+      .floating-orb {
+        position: fixed;
+        right: 18px;
+        bottom: 22px;
+        z-index: 60;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        background: linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%);
+        box-shadow: 0 10px 18px rgba(34, 211, 238, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        color: #f8fafc;
+        text-decoration: none;
+        transform: translateZ(0);
+        transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+        animation: pulseOrb 2.4s infinite ease-in-out;
+        font-size: 1.5rem;
+        line-height: 1;
+      }
+
+      .floating-orb:hover {
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 14px 22px rgba(139, 92, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        filter: brightness(1.08);
+      }
+
+      @keyframes pulseOrb {
+        0%, 100% {
+          transform: scale(1);
+          box-shadow: 0 10px 18px rgba(34, 211, 238, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        50% {
+          transform: scale(1.04);
+          box-shadow: 0 14px 22px rgba(139, 92, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen pb-16 text-slate-100 antialiased">
+    <div id="bgLayer" class="pointer-events-none fixed inset-0 -z-20 overflow-hidden">
+      <video id="backgroundVideo" class="hidden h-full w-full object-cover opacity-90" autoplay muted loop playsinline></video>
+      <div id="backgroundOverlay" class="absolute inset-0 bg-slate-950/25"></div>
+    </div>
+
+    <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <header class="cyber-header mb-8 p-6">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-cyan-400">Admin</p>
+            <h1 class="mt-2 text-3xl font-bold text-white text-shadow-[0_0_18px_rgba(34,211,238,0.7)]">Panel Settings</h1>
+          </div>
+          <div class="flex items-center gap-3">
+            <a href="/status" class="cyber-button rounded-full px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-cyan-300 hover:text-cyan-200">View Status</a>
+            <button id="logoutBtn" class="rounded-full border border-slate-700 bg-slate-800/80 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-red-500/50 hover:text-red-300">Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <div id="errorBanner" class="hidden mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></div>
+
+      <main class="glass-panel rounded-2xl p-6">
+        <form id="settingsForm" class="grid gap-4 md:grid-cols-2">
+          <div>
+            <label class="mb-2 block text-sm text-slate-300">Panel Name</label>
+            <input id="statusPanelName" name="statusPanelName" type="text" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-500" placeholder="PricklyStatus Page" />
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm text-slate-300">Panel URL</label>
+            <input id="pterodactylApiUrl" name="pterodactylApiUrl" type="url" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-500" placeholder="https://panel.example.com" />
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm text-slate-300">API Key</label>
+            <input id="apiKey" name="apiKey" type="password" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-500" placeholder="API key" />
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm text-slate-300">Logo Upload</label>
+            <input id="logoFile" name="logoFile" type="file" accept="image/*" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-500" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="mb-2 block text-sm text-slate-300">Background URL</label>
+            <input id="backgroundUrl" name="backgroundUrl" type="url" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-500" placeholder="https://example.com/background.jpg" />
+          </div>
+
+          <div class="md:col-span-2 flex justify-end">
+            <button type="submit" class="rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400">Save Settings</button>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <script>
+      const settingsForm = document.getElementById('settingsForm');
+      const errorBanner = document.getElementById('errorBanner');
+      const dynamicFavicon = document.getElementById('dynamic-favicon');
+      const backgroundVideo = document.getElementById('backgroundVideo');
+
+      function applyBackgroundMedia(backgroundUrl) {
+        if (!backgroundUrl) {
+          backgroundVideo.pause();
+          backgroundVideo.removeAttribute('src');
+          backgroundVideo.classList.add('hidden');
+          return;
+        }
+
+        const isVideo = /\.(mp4|webm|ogg|mov)(\?.*)?$|video/i.test(backgroundUrl);
+
+        if (isVideo) {
+          backgroundVideo.src = backgroundUrl;
+          backgroundVideo.classList.remove('hidden');
+          backgroundVideo.play().catch(() => {});
+          return;
+        }
+
+        backgroundVideo.pause();
+        backgroundVideo.removeAttribute('src');
+        backgroundVideo.classList.add('hidden');
+        document.body.style.backgroundImage = `url('${backgroundUrl}')`;
+        document.body.style.backgroundAttachment = 'fixed';
+      }
+
+      function populateForm(config) {
+        document.getElementById('statusPanelName').value = config.statusPanelName || '';
+        document.getElementById('pterodactylApiUrl').value = config.pterodactylApiUrl || '';
+        document.getElementById('apiKey').value = config.apiKey || '';
+        document.getElementById('backgroundUrl').value = config.backgroundUrl || '';
+        document.getElementById('logoFile').value = '';
+      }
+
+      async function loadConfig() {
+        try {
+          const response = await fetch('/api/config', { credentials: 'same-origin' });
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Unable to load settings.');
+          }
+
+          const config = data.config || {};
+          populateForm(config);
+          applyBackgroundMedia(config.backgroundUrl || '');
+          if (config.logoUrl) {
+            dynamicFavicon.href = config.logoUrl;
+          }
+        } catch (error) {
+          errorBanner.textContent = error.message || 'Unable to load settings.';
+          errorBanner.classList.remove('hidden');
+        }
+      }
+
+      settingsForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData();
+        formData.append('statusPanelName', document.getElementById('statusPanelName').value.trim());
+        formData.append('pterodactylApiUrl', document.getElementById('pterodactylApiUrl').value.trim());
+        formData.append('apiKey', document.getElementById('apiKey').value.trim());
+        formData.append('backgroundUrl', document.getElementById('backgroundUrl').value.trim());
+
+        const logoFileInput = document.getElementById('logoFile');
+        if (logoFileInput && logoFileInput.files && logoFileInput.files[0]) {
+          formData.append('logoFile', logoFileInput.files[0]);
+        }
+
+        try {
+          const response = await fetch('/api/admin/config', {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Unable to save settings.');
+          }
+
+          errorBanner.classList.add('hidden');
+          alert('Settings saved successfully.');
+          await loadConfig();
+        } catch (error) {
+          errorBanner.textContent = error.message || 'Unable to save settings.';
+          errorBanner.classList.remove('hidden');
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await fetch('/api/logout', {
+          method: 'POST',
+          credentials: 'same-origin'
+        });
+        window.location.href = '/login';
+      });
+
+      async function applyGlobalConfig() {
+        try {
+          const response = await fetch('/api/config');
+          const data = await response.json();
+          if (response.ok && data.success) {
+            const config = data.config || {};
+            document.title = config.statusPanelName || 'PricklyStatus Page Admin';
+            applyBackgroundMedia(config.backgroundUrl || '');
+            if (config.logoUrl) {
+              dynamicFavicon.href = config.logoUrl;
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load global config', error);
+        }
+      }
+
+      applyGlobalConfig();
+      loadConfig();
+    </script>
+
+    <footer class="cyber-footer py-3 text-center text-sm text-slate-200">
+      <a href="https://pricklystudios.netlify.app" target="_blank" rel="noreferrer" aria-label="PricklyStudios website">Powered By PricklyStudios © 2026-27.</a>
+    </footer>
+
+    <a href="/admin" class="floating-orb" aria-label="Open admin dashboard">👑</a>
+  </body>
+</html>

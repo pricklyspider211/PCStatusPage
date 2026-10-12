@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" id="dynamic-favicon" type="image/png" href="" />
+    <title>Login | PricklyStatus Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background: linear-gradient(135deg, #020817 0%, #0f172a 100%);
+      }
+
+      .cyber-header {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      .cyber-button {
+        border: 1px solid rgba(34, 211, 238, 0.4);
+        background: rgba(8, 47, 73, 0.38);
+        box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
+        text-shadow: 0 0 12px rgba(34, 211, 238, 0.8);
+      }
+
+      .glass-panel {
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(34, 211, 238, 0.28);
+        box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.1), 0 20px 50px rgba(15, 23, 42, 0.5), 0 0 28px rgba(34, 211, 238, 0.12);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+
+      .cyber-footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 40;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      .cyber-footer a {
+        color: #dbeafe;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-shadow: 0 0 12px rgba(34, 211, 238, 0.55), 0 0 24px rgba(34, 211, 238, 0.2);
+      }
+
+      .floating-orb {
+        position: fixed;
+        right: 18px;
+        bottom: 22px;
+        z-index: 60;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        background: linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%);
+        box-shadow: 0 10px 18px rgba(34, 211, 238, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        color: #f8fafc;
+        text-decoration: none;
+        transform: translateZ(0);
+        transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+        animation: pulseOrb 2.4s infinite ease-in-out;
+        font-size: 1.5rem;
+        line-height: 1;
+      }
+
+      .floating-orb:hover {
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 14px 22px rgba(139, 92, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        filter: brightness(1.08);
+      }
+
+      @keyframes pulseOrb {
+        0%, 100% {
+          transform: scale(1);
+          box-shadow: 0 10px 18px rgba(34, 211, 238, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        50% {
+          transform: scale(1.04);
+          box-shadow: 0 14px 22px rgba(139, 92, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <div id="bgLayer" class="pointer-events-none fixed inset-0 -z-20 overflow-hidden">
+      <video id="backgroundVideo" class="hidden h-full w-full object-cover opacity-90" autoplay muted loop playsinline></video>
+      <div id="backgroundOverlay" class="absolute inset-0 bg-slate-950/25"></div>
+    </div>
+
+    <div class="flex min-h-screen flex-col">
+      <header class="cyber-header fixed left-0 right-0 top-0 z-30 mx-auto max-w-6xl px-6 py-4">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <img id="headerLogo" alt="Panel logo" class="hidden h-10 w-10 rounded-xl object-cover ring-2 ring-cyan-400/40 shadow-[0_0_18px_rgba(34,211,238,0.35)]" />
+            <div>
+              <p class="text-[10px] uppercase tracking-[0.25em] text-cyan-400">PricklyStatus</p>
+              <h1 id="headerTitle" class="text-lg font-bold text-white">Loading panel...</h1>
+            </div>
+          </div>
+          <a href="/status" class="cyber-button rounded-full px-4 py-2 text-sm font-medium text-slate-100">Status</a>
+        </div>
+      </header>
+
+      <main class="flex flex-1 items-center justify-center px-4 pb-24 pt-28">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-7 shadow-[0_0_0_1px_rgba(34,211,238,0.12),0_24px_60px_rgba(15,23,42,0.7),0_0_30px_rgba(34,211,238,0.12)] sm:p-8">
+          <div class="mb-8 text-center">
+            <img id="loginLogo" alt="Panel logo" class="mx-auto mb-4 hidden h-16 w-16 rounded-full object-cover ring-2 ring-cyan-400/40 shadow-[0_0_18px_rgba(34,211,238,0.35)]" />
+            <h1 id="loginTitle" class="text-2xl font-bold text-white text-shadow-[0_0_18px_rgba(34,211,238,0.7)]">Loading panel...</h1>
+            <p class="mt-2 text-sm text-slate-400">Administrator Login</p>
+          </div>
+
+          <form id="loginForm" class="space-y-5">
+            <div>
+              <label for="username" class="mb-2 block text-sm font-medium text-slate-300">Username</label>
+              <input id="username" name="username" type="text" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none transition focus:border-cyan-500" placeholder="Enter username" required />
+            </div>
+
+            <div>
+              <label for="password" class="mb-2 block text-sm font-medium text-slate-300">Password</label>
+              <input id="password" name="password" type="password" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none transition focus:border-cyan-500" placeholder="Enter password" required />
+            </div>
+
+            <div id="loginError" class="hidden rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"></div>
+
+            <button type="submit" class="w-full rounded-xl bg-cyan-500 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400">Login</button>
+          </form>
+        </div>
+      </main>
+
+      <footer class="cyber-footer fixed bottom-0 left-0 right-0 z-40 py-3 text-center text-sm text-slate-200">
+        <a href="https://pricklystudios.netlify.app" target="_blank" rel="noreferrer" aria-label="PricklyStudios website">Powered By PricklyStudios © 2026-27.</a>
+      </footer>
+    </div>
+
+    <script>
+      const loginForm = document.getElementById('loginForm');
+      const loginError = document.getElementById('loginError');
+      const loginTitle = document.getElementById('loginTitle');
+      const loginLogo = document.getElementById('loginLogo');
+      const headerLogo = document.getElementById('headerLogo');
+      const headerTitle = document.getElementById('headerTitle');
+      const dynamicFavicon = document.getElementById('dynamic-favicon');
+      const backgroundVideo = document.getElementById('backgroundVideo');
+
+      function applyBackgroundMedia(backgroundUrl) {
+        if (!backgroundUrl) {
+          backgroundVideo.pause();
+          backgroundVideo.removeAttribute('src');
+          backgroundVideo.classList.add('hidden');
+          return;
+        }
+
+        const isVideo = /\.(mp4|webm|ogg|mov)(\?.*)?$|video/i.test(backgroundUrl);
+
+        if (isVideo) {
+          backgroundVideo.src = backgroundUrl;
+          backgroundVideo.classList.remove('hidden');
+          backgroundVideo.play().catch(() => {});
+          return;
+        }
+
+        backgroundVideo.pause();
+        backgroundVideo.removeAttribute('src');
+        backgroundVideo.classList.add('hidden');
+        document.body.style.backgroundImage = `url('${backgroundUrl}')`;
+        document.body.style.backgroundAttachment = 'fixed';
+      }
+
+      async function loadGlobalConfig() {
+        try {
+          const response = await fetch('/api/config');
+          const data = await response.json();
+          if (response.ok && data.success) {
+            const config = data.config || {};
+            const panelName = config.statusPanelName || 'PricklyStatus Page';
+            document.title = panelName;
+            loginTitle.textContent = panelName;
+            headerTitle.textContent = panelName;
+            applyBackgroundMedia(config.backgroundUrl || '');
+            if (config.logoUrl) {
+              loginLogo.src = config.logoUrl;
+              headerLogo.src = config.logoUrl;
+              dynamicFavicon.href = config.logoUrl;
+              loginLogo.classList.remove('hidden');
+              headerLogo.classList.remove('hidden');
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load global config', error);
+        }
+      }
+
+      async function syncAuthState() {
+        try {
+          const response = await fetch('/api/auth-status', { credentials: 'same-origin' });
+          const data = await response.json();
+          if (response.ok && data.success && data.isAdmin) {
+            window.location.href = '/admin';
+          }
+        } catch (error) {
+          console.warn('Auth check failed', error);
+        }
+      }
+
+      loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        loginError.classList.add('hidden');
+
+        const formData = new FormData(loginForm);
+        const payload = {
+          username: formData.get('username').toString(),
+          password: formData.get('password').toString()
+        };
+
+        try {
+          const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Login failed.');
+          }
+
+          window.location.href = '/admin';
+        } catch (error) {
+          loginError.textContent = error.message || 'Unable to log in.';
+          loginError.classList.remove('hidden');
+        }
+      });
+
+      syncAuthState();
+      loadGlobalConfig();
+    </script>
+
+    <a href="/login" class="floating-orb" aria-label="Login">⚡</a>
+  </body>
+</html>

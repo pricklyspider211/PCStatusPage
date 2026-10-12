@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" id="dynamic-favicon" type="image/png" href="" />
+    <title>PricklyStatus Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background-color: #020817;
+      }
+
+      .glass-panel {
+        background: rgba(15, 23, 42, 0.68);
+        border: 1px solid rgba(34, 211, 238, 0.22);
+        box-shadow: 0 0 22px rgba(34, 211, 238, 0.1), inset 0 1px 0 rgba(148, 163, 184, 0.06);
+        backdrop-filter: blur(1px);
+        -webkit-backdrop-filter: blur(1px);
+      }
+
+      .cyber-button {
+        border: 1px solid rgba(34, 211, 238, 0.4);
+        background: rgba(8, 47, 73, 0.38);
+        box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
+        text-shadow: 0 0 12px rgba(34, 211, 238, 0.8);
+      }
+
+      .cyber-button.is-admin {
+        background: rgba(6, 182, 212, 0.12);
+        box-shadow: 0 0 22px rgba(34, 211, 238, 0.45);
+      }
+
+      .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 9999px;
+        display: inline-block;
+        background-color: #22c55e;
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+      }
+
+      .status-dot.offline {
+        background-color: #ef4444;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+      }
+
+      .status-dot.maintenance {
+        background-color: #f59e0b;
+        box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+      }
+
+      .floating-orb {
+        position: fixed;
+        right: 18px;
+        bottom: 22px;
+        z-index: 60;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        background: linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%);
+        box-shadow: 0 10px 18px rgba(34, 211, 238, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        color: #f8fafc;
+        text-decoration: none;
+        transform: translateZ(0);
+        transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+        animation: pulseOrb 2.4s infinite ease-in-out;
+        font-size: 1.5rem;
+        line-height: 1;
+      }
+
+      .floating-orb:hover {
+        transform: translateY(-2px) scale(1.04);
+        box-shadow: 0 14px 22px rgba(139, 92, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        filter: brightness(1.08);
+      }
+
+      @keyframes pulseOrb {
+        0%, 100% {
+          transform: scale(1);
+          box-shadow: 0 10px 18px rgba(34, 211, 238, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        50% {
+          transform: scale(1.04);
+          box-shadow: 0 14px 22px rgba(139, 92, 246, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+      }
+
+      .cyber-title {
+        text-shadow: 0 0 20px rgba(34, 211, 238, 0.65);
+      }
+
+      .cyber-header {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      .cyber-footer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 40;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+
+      .cyber-footer a {
+        color: #dbeafe;
+        text-shadow: 0 0 12px rgba(34, 211, 238, 0.55), 0 0 24px rgba(34, 211, 238, 0.2);
+      }
+
+      .node-card {
+        cursor: pointer;
+      }
+
+      .server-card {
+        border: 1px solid rgba(51, 65, 85, 0.9);
+        background: rgba(15, 23, 42, 0.52);
+      }
+
+      .server-status-online {
+        border-color: rgba(16, 185, 129, 0.38);
+        background: rgba(16, 185, 129, 0.1);
+        color: #a7f3d0;
+      }
+
+      .server-status-offline {
+        border-color: rgba(239, 68, 68, 0.38);
+        background: rgba(239, 68, 68, 0.1);
+        color: #fecaca;
+      }
+
+      .server-status-suspended {
+        border-color: rgba(168, 85, 247, 0.38);
+        background: rgba(168, 85, 247, 0.08);
+        color: #e9d5ff;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-slate-100 antialiased">
+    <div id="bgLayer" class="pointer-events-none fixed inset-0 -z-20 overflow-hidden">
+      <video id="backgroundVideo" class="hidden h-full w-full object-cover opacity-90" autoplay muted loop playsinline></video>
+      <div id="backgroundOverlay" class="absolute inset-0 bg-slate-950/25"></div>
+    </div>
+
+    <div id="appBackground" class="min-h-screen bg-cover bg-center bg-no-repeat pb-16">
+      <div class="min-h-screen bg-slate-950/20">
+        <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <header class="cyber-header mb-8 p-6">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex items-center gap-4">
+                <img id="logoImage" alt="Panel logo" class="hidden h-12 w-12 rounded-xl object-cover ring-2 ring-cyan-400/40 shadow-[0_0_18px_rgba(34,211,238,0.35)]" />
+                <div>
+                  <p class="text-xs uppercase tracking-[0.25em] text-cyan-400">Infrastructure Status</p>
+                  <h1 id="panelName" class="cyber-title mt-2 text-3xl font-bold text-white">Loading panel...</h1>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <div class="glass-panel flex items-center gap-3 rounded-full px-4 py-2">
+                  <span id="liveStatusDot" class="status-dot"></span>
+                  <span id="liveStatusText" class="text-sm font-medium text-emerald-400">Live</span>
+                  <span class="text-slate-500">•</span>
+                  <span id="lastUpdated" class="text-sm text-slate-300">Waiting for update…</span>
+                </div>
+                <a id="authNavButton" href="/login" class="cyber-button rounded-full px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-cyan-300 hover:text-cyan-200">Login</a>
+              </div>
+            </div>
+          </header>
+
+          <div id="errorBanner" class="hidden mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></div>
+
+          <main>
+            <div id="nodesGrid" class="grid gap-6 md:grid-cols-2 xl:grid-cols-3"></div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <footer class="cyber-footer py-3 text-center text-sm text-slate-200">
+      <a href="https://pricklystudios.netlify.app" target="_blank" rel="noreferrer" aria-label="PricklyStudios website">Powered By PricklyStudios © 2026-27.</a>
+    </footer>
+
+    <a id="floatingOrb" href="/login" class="floating-orb" aria-label="Admin access">⚡</a>
+
+    <script>
+      const nodesGrid = document.getElementById('nodesGrid');
+      const liveStatusText = document.getElementById('liveStatusText');
+      const liveStatusDot = document.getElementById('liveStatusDot');
+      const lastUpdated = document.getElementById('lastUpdated');
+      const errorBanner = document.getElementById('errorBanner');
+      const panelName = document.getElementById('panelName');
+      const appBackground = document.getElementById('appBackground');
+      const logoImage = document.getElementById('logoImage');
+      const dynamicFavicon = document.getElementById('dynamic-favicon');
+      const authNavButton = document.getElementById('authNavButton');
+      const floatingOrb = document.getElementById('floatingOrb');
+      const backgroundVideo = document.getElementById('backgroundVideo');
+
+      function applyBackgroundMedia(backgroundUrl) {
+        if (!backgroundUrl) {
+          appBackground.style.backgroundImage = 'none';
+          backgroundVideo.pause();
+          backgroundVideo.removeAttribute('src');
+          backgroundVideo.classList.add('hidden');
+          return;
+        }
+
+        const isVideo = /\.(mp4|webm|ogg|mov)(\?.*)?$|video/i.test(backgroundUrl);
+
+        if (isVideo) {
+          appBackground.style.backgroundImage = 'none';
+          backgroundVideo.src = backgroundUrl;
+          backgroundVideo.classList.remove('hidden');
+          backgroundVideo.play().catch(() => {});
+          return;
+        }
+
+        backgroundVideo.pause();
+        backgroundVideo.removeAttribute('src');
+        backgroundVideo.classList.add('hidden');
+        appBackground.style.backgroundImage = `url('${backgroundUrl}')`;
+        appBackground.style.backgroundAttachment = 'fixed';
+      }
+
+      async function syncAuthUi() {
+        try {
+          const response = await fetch('/api/auth-status', { credentials: 'same-origin' });
+          const data = await response.json();
+          const isAdmin = Boolean(data && data.isAdmin);
+
+          authNavButton.textContent = isAdmin ? '👑 Admin Dashboard' : 'Login';
+          authNavButton.href = isAdmin ? '/admin' : '/login';
+          authNavButton.classList.toggle('is-admin', isAdmin);
+          floatingOrb.href = isAdmin ? '/admin' : '/login';
+          floatingOrb.setAttribute('aria-label', isAdmin ? 'Open admin dashboard' : 'Login');
+          floatingOrb.innerHTML = isAdmin ? '👑' : '⚡';
+        } catch (error) {
+          console.warn('Auth status unavailable', error);
+        }
+      }
+
+      function setStatusIndicator(status) {
+        liveStatusDot.classList.remove('offline', 'maintenance');
+
+        if (status === 'offline') {
+          liveStatusDot.classList.add('offline');
+          liveStatusText.textContent = 'Offline';
+          liveStatusText.className = 'text-sm font-medium text-red-400';
+          return;
+        }
+
+        if (status === 'maintenance') {
+          liveStatusDot.classList.add('maintenance');
+          liveStatusText.textContent = 'Maintenance';
+          liveStatusText.className = 'text-sm font-medium text-amber-400';
+          return;
+        }
+
+        liveStatusText.textContent = 'Live';
+        liveStatusText.className = 'text-sm font-medium text-emerald-400';
+      }
+
+      function updateTimestamp() {
+        const now = new Date();
+        lastUpdated.textContent = `Updated ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+      }
+
+      function getNodeStatus(node) {
+        const attrs = node?.attributes || {};
+        const rawStatus = String(node?.status || attrs.status || '').toLowerCase();
+
+        if (attrs.maintenance || rawStatus === 'maintenance') {
+          return 'maintenance';
+        }
+
+        if (
+          rawStatus === 'offline' ||
+          attrs.status === 'offline' ||
+          attrs.daemon_unreachable ||
+          attrs.status === 'suspended' ||
+          rawStatus === 'suspended'
+        ) {
+          return 'offline';
+        }
+
+        return 'online';
+      }
+
+      function applySettings(config) {
+        if (!config) return;
+
+        const nextName = config.statusPanelName || 'PricklyStatus Page';
+        panelName.textContent = nextName;
+        document.title = nextName;
+
+        applyBackgroundMedia(config.backgroundUrl || '');
+
+        if (config.logoUrl) {
+          logoImage.src = config.logoUrl;
+          dynamicFavicon.href = config.logoUrl;
+          logoImage.classList.remove('hidden');
+        } else {
+          logoImage.classList.add('hidden');
+        }
+      }
+
+      function renderNodes(nodes) {
+        if (!Array.isArray(nodes) || nodes.length === 0) {
+          nodesGrid.innerHTML = `
+            <div class="col-span-full rounded-2xl border border-slate-700 bg-slate-900/60 p-8 text-center text-slate-300">
+              No nodes available.
+            </div>
+          `;
+          return;
+        }
+
+        nodesGrid.innerHTML = nodes
+          .map((node) => {
+            const attrs = node?.attributes || {};
+            const nodeId = String(node?.id ?? attrs.id ?? '');
+            const status = getNodeStatus(node);
+            const servers = Array.isArray(node?.servers) ? node.servers : [];
+            const isExpanded = node?._expanded === true;
+
+            return `
+              <article class="glass-panel node-card rounded-2xl p-5 transition hover:border-cyan-500/50 ${isExpanded ? 'ring-1 ring-cyan-500/40' : ''}" data-node-id="${nodeId}" tabindex="0" aria-expanded="${isExpanded}">
+                <div class="mb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.2em] text-cyan-400">Node</p>
+                    <h2 class="mt-2 text-xl font-semibold text-white">${attrs.name || 'Unnamed Node'}</h2>
+                  </div>
+                  <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${
+                    status === 'offline'
+                      ? 'border-red-500/40 bg-red-500/10 text-red-300'
+                      : status === 'maintenance'
+                        ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
+                        : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+                  }">
+                    ${status === 'offline' ? 'OFFLINE' : status === 'maintenance' ? 'MAINTENANCE' : 'ONLINE'}
+                  </span>
+                </div>
+
+                <div class="space-y-3 text-sm text-slate-300">
+                  <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                    <span class="text-slate-400">FQDN</span>
+                    <span class="max-w-[180px] truncate text-right text-slate-100">${attrs.fqdn || 'N/A'}</span>
+                  </div>
+                  <div class="flex items-center justify-between border-t border-slate-700 pt-2">
+                    <span class="text-slate-400">Total Servers</span>
+                    <span class="text-slate-100">${servers.length}</span>
+                  </div>
+                </div>
+
+                <div class="mt-4 border-t border-slate-700/80 pt-4 ${isExpanded ? 'block' : 'hidden'}">
+                  <div class="mb-3 flex items-center justify-between">
+                    <span class="text-xs uppercase tracking-[0.2em] text-cyan-400">Hosted Servers</span>
+                    <span class="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-200">${servers.length}</span>
+                  </div>
+
+                  <div class="space-y-2">
+                    ${servers.length
+                      ? servers
+                          .map((server) => {
+                            const serverStatus = String(server?.status || 'Offline');
+                            const serverName = server?.name || server?.attributes?.name || 'Unnamed Server';
+                            const serverPort = server?.port ?? server?.attributes?.allocation?.port ?? server?.attributes?.port ?? 'N/A';
+                            const serverFqdn = server?.fqdn || server?.allocation?.alias || server?.attributes?.allocation?.alias || server?.attributes?.fqdn || 'N/A';
+
+                            const badgeClass = serverStatus === 'Suspended'
+                              ? 'server-status-suspended'
+                              : serverStatus === 'Offline'
+                                ? 'server-status-offline'
+                                : 'server-status-online';
+
+                            return `
+                              <div class="server-card rounded-xl p-3">
+                                <div class="mb-2 flex items-center justify-between gap-3">
+                                  <div>
+                                    <p class="text-sm font-semibold text-white">${serverName}</p>
+                                    <p class="text-[11px] text-slate-400">Port: ${serverPort}</p>
+                                  </div>
+                                  <span class="rounded-full border px-2 py-0.5 text-[10px] font-medium ${badgeClass}">${serverStatus.toUpperCase()}</span>
+                                </div>
+                                <div class="rounded-lg border border-slate-700 bg-slate-900/40 px-2 py-2 text-[11px] text-slate-300">
+                                  <div class="text-slate-400">FQDN / Allocation</div>
+                                  <div class="mt-1 font-medium text-slate-100">${serverFqdn}</div>
+                                </div>
+                              </div>
+                            `;
+                          })
+                          .join('')
+                      : '<div class="rounded-xl border border-dashed border-slate-700 bg-slate-900/30 p-3 text-sm text-slate-400">No servers hosted on this node.</div>'}
+                  </div>
+                </div>
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      nodesGrid.addEventListener('click', async (event) => {
+        const card = event.target.closest('.node-card');
+        if (!card) {
+          return;
+        }
+
+        const nodeId = card.dataset.nodeId;
+        if (!nodeId) {
+          return;
+        }
+
+        const nodeList = Array.isArray(window.__pricklyNodes) ? window.__pricklyNodes : [];
+        const nodeIndex = nodeList.findIndex((item) => String(item?.id ?? item?.attributes?.id ?? '') === String(nodeId));
+        const node = nodeList[nodeIndex];
+
+        if (!node) {
+          return;
+        }
+
+        const shouldExpand = !node?._expanded;
+
+        if (shouldExpand && (!Array.isArray(node.servers) || node.servers.length === 0)) {
+          try {
+            const response = await fetch(`/api/nodes/${nodeId}/servers`, { credentials: 'same-origin' });
+            const data = await response.json();
+            node.servers = Array.isArray(data?.servers) ? data.servers : [];
+          } catch (error) {
+            node.servers = [];
+          }
+        }
+
+        node._expanded = shouldExpand;
+        window.__pricklyNodes = nodeList.map((entry, index) => ({
+          ...entry,
+          _expanded: index === nodeIndex ? shouldExpand : false
+        }));
+
+        renderNodes(window.__pricklyNodes);
+      });
+
+      nodesGrid.addEventListener('keydown', (event) => {
+        const card = event.target.closest('.node-card');
+        if (!card) {
+          return;
+        }
+
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          card.click();
+        }
+      });
+
+      async function fetchSettings() {
+        const response = await fetch('/api/settings');
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          applySettings(data.config);
+        }
+      }
+
+      async function fetchNodes() {
+        try {
+          const response = await fetch('/api/nodes');
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Unable to fetch node data.');
+          }
+
+          const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+          window.__pricklyNodes = nodes.map((node) => ({
+            ...node,
+            id: node?.id ?? node?.attributes?.id ?? null
+          }));
+          const hasLiveNode = nodes.some((node) => getNodeStatus(node) !== 'offline');
+          setStatusIndicator(hasLiveNode ? 'online' : 'offline');
+          renderNodes(nodes);
+          updateTimestamp();
+          errorBanner.classList.add('hidden');
+        } catch (error) {
+          console.error(error);
+          errorBanner.textContent = error.message || 'Unable to load node data.';
+          errorBanner.classList.remove('hidden');
+          setStatusIndicator('offline');
+          nodesGrid.innerHTML = `
+            <div class="col-span-full rounded-2xl border border-slate-700 bg-slate-900/60 p-8 text-center text-slate-300">
+              Unable to connect to the panel API.
+            </div>
+          `;
+        }
+      }
+
+      async function applyGlobalConfig() {
+        try {
+          const response = await fetch('/api/config');
+          const data = await response.json();
+          if (response.ok && data.success) {
+            applySettings(data.config);
+          }
+        } catch (error) {
+          console.error('Failed to load global config', error);
+        }
+      }
+
+      applyGlobalConfig();
+      syncAuthUi();
+      fetchSettings();
+      fetchNodes();
+      setInterval(fetchNodes, 10000);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PricklyStatus Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background-color: #020817;
+      }
+
+      .status-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 9999px;
+        display: inline-block;
+        background-color: #22c55e;
+        box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+      }
+
+      .status-dot.offline {
+        background-color: #ef4444;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+      }
+
+      .status-dot.maintenance {
+        background-color: #f59e0b;
+        box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-slate-100 antialiased">
+    <div id="appBackground" class="min-h-screen bg-cover bg-center bg-no-repeat">
+      <div class="min-h-screen bg-slate-950/70 backdrop-blur-sm">
+        <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <header class="mb-8 rounded-2xl border border-slate-700/80 bg-slate-900/80 p-6 shadow-2xl shadow-slate-950/40">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div class="flex items-center gap-4">
+                <img id="logoImage" alt="Panel logo" class="hidden h-12 w-12 rounded-xl object-cover" />
+                <div>
+                  <p class="text-xs uppercase tracking-[0.2em] text-cyan-400">Status Monitor</p>
+                  <h1 id="panelName" class="mt-2 text-3xl font-bold text-white">Loading panel...</h1>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3">
+                <div class="flex items-center gap-3 rounded-full border border-slate-700 bg-slate-800/80 px-4 py-2">
+                  <span id="liveStatusDot" class="status-dot"></span>
+                  <span id="liveStatusText" class="text-sm font-medium text-emerald-400">Live</span>
+                  <span class="text-slate-500">•</span>
+                  <span id="lastUpdated" class="text-sm text-slate-300">Waiting for update…</span>
+                </div>
+                <button id="logoutBtn" class="rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-red-500/50 hover:text-red-300">Logout</button>
+              </div>
+            </div>
+          </header>
+
+          <div id="errorBanner" class="hidden mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"></div>
+
+          <section class="mb-8 rounded-2xl border border-slate-700 bg-slate-900/80 p-6 shadow-xl shadow-slate-950/30">
+            <div class="mb-4 flex items-center justify-between gap-4">
+              <h2 class="text-xl font-semibold text-white">Admin Settings</h2>
+              <span class="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-xs font-medium text-cyan-300">Protected</span>
+            </div>
+
+            <form id="settingsForm" class="grid gap-4 md:grid-cols-2">
+              <div>
+                <label class="mb-2 block text-sm text-slate-300">Panel Name</label>
+                <input id="statusPanelName" name="statusPanelName" type="text" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-500" placeholder="PricklyStatus Page" />
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm text-slate-300">Panel URL</label>
+                <input id="pterodactylApiUrl" name="pterodactylApiUrl" type="url" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-500" placeholder="https://panel.example.com" />
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm text-slate-300">API Key</label>
+                <input id="apiKey" name="apiKey" type="password" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-500" placeholder="API key" />
+              </div>
+
+              <div>
+                <label class="mb-2 block text-sm text-slate-300">Logo URL</label>
+                <input id="logoUrl" name="logoUrl" type="url" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-500" placeholder="https://example.com/logo.png" />
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="mb-2 block text-sm text-slate-300">Background URL</label>
+                <input id="backgroundUrl" name="backgroundUrl" type="url" class="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-500" placeholder="https://example.com/background.jpg" />
+              </div>
+
+              <div class="md:col-span-2 flex justify-end">
+                <button type="submit" class="rounded-xl bg-cyan-500 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-400">Save Settings</button>
+              </div>
+            </form>
+          </section>
+
+          <main>
+            <div id="nodesGrid" class="grid gap-6 md:grid-cols-2 xl:grid-cols-3"></div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const nodesGrid = document.getElementById('nodesGrid');
+      const liveStatusText = document.getElementById('liveStatusText');
+      const liveStatusDot = document.getElementById('liveStatusDot');
+      const lastUpdated = document.getElementById('lastUpdated');
+      const errorBanner = document.getElementById('errorBanner');
+      const settingsForm = document.getElementById('settingsForm');
+      const panelName = document.getElementById('panelName');
+      const background = document.getElementById('appBackground');
+      const logoImage = document.getElementById('logoImage');
+
+      function setStatusIndicator(status) {
+        liveStatusDot.classList.remove('offline', 'maintenance');
+
+        if (status === 'offline') {
+          liveStatusDot.classList.add('offline');
+          liveStatusText.textContent = 'Offline';
+          liveStatusText.className = 'text-sm font-medium text-red-400';
+          return;
+        }
+
+        if (status === 'maintenance') {
+          liveStatusDot.classList.add('maintenance');
+          liveStatusText.textContent = 'Maintenance';
+          liveStatusText.className = 'text-sm font-medium text-amber-400';
+          return;
+        }
+
+        liveStatusText.textContent = 'Live';
+        liveStatusText.className = 'text-sm font-medium text-emerald-400';
+      }
+
+      function updateTimestamp() {
+        const now = new Date();
+        lastUpdated.textContent = `Updated ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+      }
+
+      function formatGigabytes(value) {
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue) || numericValue <= 0) {
+          return '0 GB';
+        }
+
+        const gbValue = numericValue / (1024 * 1024 * 1024);
+        return `${gbValue >= 1 ? gbValue.toFixed(1) : (numericValue / 1024 / 1024).toFixed(1)} GB`;
+      }
+
+      function getNodeStatus(node) {
+        const attrs = node?.attributes || {};
+
+        if (attrs.maintenance) {
+          return 'maintenance';
+        }
+
+        if (attrs.status === 'offline' || attrs.daemon_unreachable || attrs.status === 'suspended') {
+          return 'offline';
+        }
+
+        return 'online';
+      }
+
+      function getDaemonVersion(node) {
+        const attrs = node?.attributes || {};
+        return attrs.daemon_info?.version || attrs.daemon_version || 'Unknown';
+      }
+
+      function applyConfig(config) {
+        if (!config) return;
+
+        panelName.textContent = config.statusPanelName || 'PricklyStatus Page';
+
+        const bg = config.backgroundUrl;
+        if (bg) {
+          background.style.backgroundImage = `url('${bg}')`;
+        } else {
+          background.style.backgroundImage = 'none';
+        }
+
+        if (config.logoUrl) {
+          logoImage.src = config.logoUrl;
+          logoImage.classList.remove('hidden');
+        } else {
+          logoImage.classList.add('hidden');
+        }
+
+        document.getElementById('statusPanelName').value = config.statusPanelName || '';
+        document.getElementById('pterodactylApiUrl').value = config.pterodactylApiUrl || '';
+        document.getElementById('apiKey').value = config.apiKey || '';
+        document.getElementById('logoUrl').value = config.logoUrl || '';
+        document.getElementById('backgroundUrl').value = config.backgroundUrl || '';
+      }
+
+      function renderNodes(nodes) {
+        if (!Array.isArray(nodes) || nodes.length === 0) {
+          nodesGrid.innerHTML = `
+            <div class="col-span-full rounded-2xl border border-slate-700 bg-slate-900/60 p-8 text-center text-slate-300">
+              No nodes available.
+            </div>
+          `;
+          return;
+        }
+
+        nodesGrid.innerHTML = nodes
+          .map((node) => {
+            const attrs = node?.attributes || {};
+            const status = getNodeStatus(node);
+            const totalMemory = attrs.system?.memory_total ?? attrs.memory ?? 0;
+            const totalDisk = attrs.system?.disk_total ?? attrs.disk ?? 0;
+
+            return `
+              <article class="rounded-2xl border border-slate-700 bg-slate-900/80 p-5 shadow-xl shadow-slate-950/30 transition hover:border-cyan-500/50">
+                <div class="mb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <p class="text-xs uppercase tracking-[0.2em] text-cyan-400">Node</p>
+                    <h2 class="mt-2 text-xl font-semibold text-white">${attrs.name || 'Unnamed Node'}</h2>
+                  </div>
+                  <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${
+                    status === 'offline'
+                      ? 'border-red-500/40 bg-red-500/10 text-red-300'
+                      : status === 'maintenance'
+                        ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
+                        : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+                  }">
+                    ${status === 'offline' ? 'Offline' : status === 'maintenance' ? 'Maintenance' : 'Operational'}
+                  </span>
+                </div>
+
+                <div class="space-y-3 text-sm text-slate-300">
+                  <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                    <span class="text-slate-400">FQDN</span>
+                    <span class="max-w-[180px] truncate text-right text-slate-100">${attrs.fqdn || 'N/A'}</span>
+                  </div>
+                  <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                    <span class="text-slate-400">Total RAM</span>
+                    <span class="text-slate-100">${formatGigabytes(totalMemory)}</span>
+                  </div>
+                  <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                    <span class="text-slate-400">Total Disk</span>
+                    <span class="text-slate-100">${formatGigabytes(totalDisk)}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-400">Daemon</span>
+                    <span class="text-slate-100">${getDaemonVersion(node)}</span>
+                  </div>
+                </div>
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      async function fetchConfig() {
+        const response = await fetch('/api/config', { credentials: 'same-origin' });
+        if (!response.ok) {
+          if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+          throw new Error('Unable to load configuration.');
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          applyConfig(data.config);
+        }
+      }
+
+      async function fetchNodes() {
+        try {
+          const response = await fetch('/api/nodes', { credentials: 'same-origin' });
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Unable to fetch node data.');
+          }
+
+          const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+          const hasLiveNode = nodes.some((node) => getNodeStatus(node) !== 'offline');
+          setStatusIndicator(hasLiveNode ? 'online' : 'offline');
+          renderNodes(nodes);
+          updateTimestamp();
+          errorBanner.classList.add('hidden');
+        } catch (error) {
+          console.error(error);
+          errorBanner.textContent = error.message || 'Unable to load node data.';
+          errorBanner.classList.remove('hidden');
+          setStatusIndicator('offline');
+          nodesGrid.innerHTML = `
+            <div class="col-span-full rounded-2xl border border-slate-700 bg-slate-900/60 p-8 text-center text-slate-300">
+              Unable to connect to the panel API.
+            </div>
+          `;
+        }
+      }
+
+      settingsForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const payload = {
+          statusPanelName: document.getElementById('statusPanelName').value.trim(),
+          pterodactylApiUrl: document.getElementById('pterodactylApiUrl').value.trim(),
+          apiKey: document.getElementById('apiKey').value.trim(),
+          logoUrl: document.getElementById('logoUrl').value.trim(),
+          backgroundUrl: document.getElementById('backgroundUrl').value.trim()
+        };
+
+        try {
+          const response = await fetch('/api/admin/config', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Unable to save settings.');
+          }
+
+          applyConfig(data.config);
+          errorBanner.classList.add('hidden');
+          await fetchNodes();
+        } catch (error) {
+          errorBanner.textContent = error.message || 'Unable to save settings.';
+          errorBanner.classList.remove('hidden');
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await fetch('/api/logout', {
+          method: 'POST',
+          credentials: 'same-origin'
+        });
+        window.location.href = '/login';
+      });
+
+      fetchConfig().then(() => fetchNodes()).catch((error) => {
+        console.error(error);
+        errorBanner.textContent = error.message || 'Unable to load the dashboard.';
+        errorBanner.classList.remove('hidden');
+      });
+
+      setInterval(fetchNodes, 10000);
+    </script>
+  </body>
+</html>
