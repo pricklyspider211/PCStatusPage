@@ -2,8 +2,7 @@
 set -euo pipefail
 
 REPO_URL="https://github.com/pricklyspider211/PCStatusPage.git"
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-APP_DIR="${APP_DIR:-$SCRIPT_DIR}"
+APP_DIR="${APP_DIR:-/var/www/pcstatuspage}"
 PORT="${PORT:-3000}"
 LOG_DIR="$APP_DIR/.logs"
 
