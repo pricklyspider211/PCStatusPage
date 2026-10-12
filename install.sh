@@ -6,14 +6,17 @@ APP_DIR="${APP_DIR:-/var/www/pcstatuspage}"
 PORT="${PORT:-3000}"
 LOG_DIR="$APP_DIR/.logs"
 
-mkdir -p "$APP_DIR" "$LOG_DIR"
-rm -f "$APP_DIR/install.log" "$APP_DIR/server.log" "$APP_DIR/.npm-install.pid"
-
 if [ -d "$APP_DIR/.git" ]; then
+  echo "Updating existing installation..."
   git -C "$APP_DIR" pull --ff-only >/dev/null 2>&1 || true
 else
+  echo "Setting up fresh installation directory..."
+  rm -rf "$APP_DIR"
   git clone "$REPO_URL" "$APP_DIR"
 fi
+
+mkdir -p "$APP_DIR" "$LOG_DIR"
+rm -f "$APP_DIR/install.log" "$APP_DIR/server.log" "$APP_DIR/.npm-install.pid"
 
 if [ ! -d "$APP_DIR/node_modules" ]; then
   echo "Installing dependencies..."
